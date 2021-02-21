@@ -48,7 +48,7 @@ def bind(function: callable):
 
 
 @contextlib.asynccontextmanager
-async def scope(**kwargs):
+async def dependencies(**kwargs):
     token = _context.run(lambda: _dependencies.set(kwargs))
     try:
         yield

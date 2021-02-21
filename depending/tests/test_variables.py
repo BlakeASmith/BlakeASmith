@@ -1,4 +1,4 @@
-from depending.variables import bind, scope, dependency
+from depending.variables import bind, dependencies, dependency
 
 
 @dependency
@@ -11,10 +11,10 @@ async def test_variables():
     async def function(foo):
         print(foo)
 
-    async with scope(foo="bar"):
+    async with dependencies(foo="bar"):
         await function()
 
-    async with scope(foo="cat") as dumb:
+    async with dependencies(foo="cat") as dumb:
         await function()
 
     await function(foo="bulldog")
