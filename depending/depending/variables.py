@@ -2,6 +2,7 @@ import contextlib
 import contextvars
 import inspect
 from functools import wraps
+from typing import Mapping
 
 _dependencies = contextvars.ContextVar("dependencies", default={})
 _dependency_functions = contextvars.ContextVar("dependency_functions", default={})
@@ -16,19 +17,28 @@ def _init_context():
 _context.run(_init_context)
 
 
-def dependency(function: callable):
-    _context[_dependency_functions][function.__name__] = function
+def dependency(function: callable, expand_mapping: bool = False):
+    if expand_mapping:
+        @wraps(function)
+        async def _function(*args, **kwargs):
+            if isinstance(result := await function(*args, **kwargs), Mapping):
+                _context[_dependencies].extend(result)
+
+            return result
+    else:
+        _function = function
+    _context[_dependency_functions][function.__name__] = _function
 
 
 async def _get_dependency(name):
-    dependencies = _context[_dependencies]
+    dependencies_ = _context[_dependencies]
     dependency_functions = _context[_dependency_functions]
 
     try:
-        return dependencies[name]
+        return dependencies_[name]
     except KeyError:
         dep = await dependency_functions[name]()
-        dependencies[name] = dep
+        dependencies_[name] = dep
         return dep
 
 
