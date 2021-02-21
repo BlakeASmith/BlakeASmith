@@ -14,7 +14,7 @@ async def test_variables():
     async with scope(foo="bar"):
         await function()
 
-    async with scope(foo="cat"):
+    async with scope(foo="cat") as dumb:
         await function()
 
     await function(foo="bulldog")
